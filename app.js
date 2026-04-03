@@ -195,7 +195,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
   } catch (err) {
     btn.textContent = 'Generate My Reports →';
     btn.disabled = false;
-    alert('Error: ' + err.message + '\n\nEmail support@mcflamingo.com if this keeps happening.');
+    alert('Error: ' + err.message + '\n\nEmail support@bleeding.cash if this keeps happening.');
   }
 });
 
@@ -214,7 +214,7 @@ const FAQ = [
 
 function getChatResponse(msg) {
   for (const item of FAQ) { if (item.q.test(msg)) return item.a; }
-  return "Good question. Email support@mcflamingo.com for anything specific to your report — we respond within 1 business day.";
+  return "Good question. Email support@bleeding.cash for anything specific to your report — we respond within 1 business day.";
 }
 
 const bubble = document.getElementById('chatBubble');
