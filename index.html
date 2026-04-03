@@ -238,20 +238,38 @@
           </div>
           <p class="disclaimer">By MCFL Restaurant Holdings LLC. Informational only. Not financial, legal, or accounting advice. MCFL Restaurant Holdings LLC assumes no liability.</p>
           <button type="submit" class="btn btn-primary btn-large btn-full" id="submitBtn">
-            Pay $24.95 & Get My Reports →
+            Get My Reports →
           </button>
         </div>
 
-        <!-- Step 2: Payment -->
+        <!-- Step 2: Upload files -->
         <div class="form-step hidden" id="step2">
           <div class="payment-box">
-            <h3>Complete your payment</h3>
-            <p>Click below to pay securely via BasaltSurge. Come back here after paying.</p>
-            <a id="paymentLink" href="#" target="_blank" class="btn btn-primary btn-large btn-full">Pay $24.95 Now →</a>
-            <button type="button" class="btn btn-outline btn-large btn-full" id="checkPayBtn" style="margin-top:12px">
-              I've paid — check my payment
+            <h3>Upload your files</h3>
+            <p style="margin-bottom:24px">Your session is ready. Upload your bank statement and POS data below to generate your reports.</p>
+            <div class="form-group" style="text-align:left;margin-bottom:20px">
+              <label>Bank statement — last 90 days <span class="req">*</span></label>
+              <div class="file-drop" id="bankDrop">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Drop bank export here or <label for="bankFile" class="file-link">browse</label></span>
+                <span class="formats">XLS · XLSX · CSV</span>
+                <input type="file" id="bankFile" accept=".xls,.xlsx,.csv" style="display:none">
+                <div class="file-name" id="bankName"></div>
+              </div>
+            </div>
+            <div class="form-group" style="text-align:left;margin-bottom:24px">
+              <label>POS / sales report <span class="opt">(optional)</span></label>
+              <div class="file-drop" id="posDrop">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Drop POS export here or <label for="posFile" class="file-link">browse</label></span>
+                <span class="formats">XLS · XLSX · CSV</span>
+                <input type="file" id="posFile" accept=".xls,.xlsx,.csv" style="display:none">
+                <div class="file-name" id="posName"></div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-large btn-full" id="uploadBtn">
+              Generate My Reports →
             </button>
-            <div id="payStatus" class="pay-status"></div>
           </div>
         </div>
 
@@ -261,7 +279,8 @@
             <div style="font-size:3rem;margin-bottom:16px">✅</div>
             <h3>Your reports are being generated</h3>
             <p>Your access token: <strong id="accessToken" style="color:#c0392b;font-family:monospace"></strong></p>
-            <p style="margin-top:12px">Check your email for the download link. Your 3 PDFs will be ready within 10 minutes. The link expires in 24 hours.</p>
+            <p style="margin-top:12px">Your 3 PDFs are being generated. Check your email for the download link within 10 minutes.</p>
+            <a id="downloadLink" href="#" class="btn btn-primary btn-large" style="margin-top:16px;display:none">Download Reports →</a>
             <p style="margin-top:16px;font-size:13px;color:#888">Questions? Email <a href="mailto:support@mcflamingo.com">support@mcflamingo.com</a></p>
           </div>
         </div>

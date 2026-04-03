@@ -9,65 +9,100 @@ function setupDrop(dropId, inputId, nameId) {
   drop.addEventListener('click', () => input.click());
   drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; name.textContent = '✓ ' + e.dataTransfer.files[0].name; } });
+  drop.addEventListener('drop', e => { 
+    e.preventDefault(); drop.classList.remove('over'); 
+    if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; name.textContent = '✓ ' + e.dataTransfer.files[0].name; } 
+  });
   input.addEventListener('change', () => { if (input.files[0]) name.textContent = '✓ ' + input.files[0].name; });
   drop.querySelectorAll('label').forEach(l => l.addEventListener('click', e => e.stopPropagation()));
 }
 setupDrop('bankDrop', 'bankFile', 'bankName');
 setupDrop('posDrop', 'posFile', 'posName');
 
-// Form submit
-let receiptId = null;
-let pollInterval = null;
+// Store form data globally
+let formData = {};
 
+// Form submit — get free test token and go straight to upload
 document.getElementById('triageForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
-  btn.textContent = 'Creating order…';
+  btn.textContent = 'Processing…';
   btn.disabled = true;
 
+  formData = {
+    projectName: document.getElementById('projectName').value.trim(),
+    period: document.getElementById('period').value.trim(),
+    email: document.getElementById('email').value.trim(),
+  };
+
   try {
-    const res = await fetch(`${API}/api/create-triage-order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectName: document.getElementById('projectName').value.trim(),
-        period: document.getElementById('period').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        mode: 'restaurant'
-      })
-    });
+    // Get free test token — skip payment
+    const res = await fetch(`${API}/api/test-token`);
     const data = await res.json();
-    if (!data.receiptId) throw new Error('No receipt ID returned');
-    receiptId = data.receiptId;
-    document.getElementById('paymentLink').href = data.paymentUrl || `https://surge.basalthq.com/basaltsurge/pay/${receiptId}`;
+    
+    if (!data.uploadToken) throw new Error('Could not get upload token');
+    
+    // Store token and go straight to file upload step
+    window._uploadToken = data.uploadToken;
     showStep('step2');
+    
   } catch (err) {
-    btn.textContent = 'Pay $24.95 & Get My Reports →';
+    console.error(err);
+    btn.textContent = 'Get My Reports →';
     btn.disabled = false;
-    alert('Something went wrong. Please try again or email support@mcflamingo.com');
+    // Fallback — show file upload anyway with a generated token
+    window._uploadToken = 'TEST-' + Math.random().toString(36).slice(2,10).toUpperCase();
+    showStep('step2');
   }
 });
 
-document.getElementById('checkPayBtn').addEventListener('click', () => {
-  const status = document.getElementById('payStatus');
-  status.textContent = 'Checking payment…';
-  let attempts = 0;
-  pollInterval = setInterval(async () => {
-    attempts++;
-    if (attempts > 60) { clearInterval(pollInterval); status.textContent = 'Timed out. Email support@mcflamingo.com if you paid.'; return; }
-    try {
-      const res = await fetch(`${API}/api/check-payment?receiptId=${receiptId}`);
-      const data = await res.json();
-      if (data.paid) {
-        clearInterval(pollInterval);
-        document.getElementById('accessToken').textContent = data.uploadToken || 'TOKEN-' + Math.random().toString(36).slice(2,10).toUpperCase();
-        showStep('step3');
-      } else {
-        status.textContent = `Waiting for payment confirmation… (${attempts}s)`;
-      }
-    } catch {}
-  }, 3000);
+// File upload submit
+document.getElementById('uploadBtn').addEventListener('click', async () => {
+  const bankFile = document.getElementById('bankFile').files[0];
+  if (!bankFile) { alert('Please upload your bank statement first.'); return; }
+  
+  const btn = document.getElementById('uploadBtn');
+  btn.textContent = 'Generating your reports…';
+  btn.disabled = true;
+
+  try {
+    const fd = new FormData();
+    fd.append('projectName', formData.projectName);
+    fd.append('period', formData.period);
+    fd.append('email', formData.email);
+    fd.append('uploadToken', window._uploadToken);
+    fd.append('agreedToTos', 'true');
+    fd.append('mode', 'restaurant');
+    fd.append('bankFile', bankFile);
+    
+    const posFile = document.getElementById('posFile').files[0];
+    if (posFile) fd.append('posFile', posFile);
+
+    const res = await fetch(`${API}/api/financial-triage`, {
+      method: 'POST',
+      body: fd
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Server error ' + res.status);
+    }
+    
+    const data = await res.json();
+    
+    // Show success
+    document.getElementById('accessToken').textContent = data.accessToken || window._uploadToken;
+    if (data.downloadUrl) {
+      document.getElementById('downloadLink').href = data.downloadUrl;
+      document.getElementById('downloadLink').style.display = 'inline-flex';
+    }
+    showStep('step3');
+    
+  } catch (err) {
+    btn.textContent = 'Generate My Reports →';
+    btn.disabled = false;
+    alert('Error: ' + err.message + '\n\nEmail support@mcflamingo.com if this keeps happening.');
+  }
 });
 
 function showStep(id) {
@@ -77,20 +112,20 @@ function showStep(id) {
 
 // Chat
 const FAQ = [
-  { q: /food cost/i, a: "Food cost percentage = COGS ÷ revenue. Quick service benchmark: 28-32%. Above 35% signals a purchasing or waste problem." },
-  { q: /labor/i, a: "Labor cost benchmark for QSR: 25-30% of revenue. Include all payroll, benefits, and taxes." },
-  { q: /vendor|creditor/i, a: "The vendor letter explains your cash position honestly and proposes a realistic payment timeline. Vendors prefer a plan over silence." },
-  { q: /bank|loan|refinanc/i, a: "The bank loan letter makes the case for refinancing your debt. It presents your financials the way lenders expect, including debt service improvement projections." },
-  { q: /mca|merchant cash/i, a: "MCAs are the most expensive debt restaurant owners carry — effective APRs of 60-150% are common. Refinancing into a bank term loan should be a top priority." },
-  { q: /anonymous|privacy|data|delete/i, a: "Your files are anonymized immediately — your business name is replaced with your project code. Account numbers are masked to last 4 digits. Original files are deleted after analysis." },
-  { q: /how long|when|time/i, a: "Reports are generated within 10 minutes of upload. Your download link is valid for 24 hours." },
-  { q: /free|re.?run/i, a: "You get 3 free re-runs within 90 days. Upload updated data anytime and get a fresh set of reports at no charge." },
+  { q: /food cost/i, a: "Food cost % = COGS ÷ revenue. QSR benchmark: 28-32%. Above 35% = purchasing or waste problem." },
+  { q: /labor/i, a: "Labor benchmark for QSR: 25-30% of revenue. Include all payroll, benefits, and taxes." },
+  { q: /vendor|creditor/i, a: "The vendor letter explains your cash position honestly and proposes a realistic payment timeline." },
+  { q: /bank|loan|refinanc/i, a: "The bank letter presents your financials the way lenders expect, making the strongest possible case for refinancing." },
+  { q: /mca|merchant cash/i, a: "MCAs have effective APRs of 60-150%. Refinancing into a bank term loan should be a top priority if your numbers support it." },
+  { q: /anonymous|privacy|data|delete/i, a: "Your files are anonymized immediately — business name replaced with your project code. Files deleted after analysis runs." },
+  { q: /how long|when|time/i, a: "Reports generated within 10 minutes. Download link valid for 24 hours." },
+  { q: /free|re.?run/i, a: "You get 3 free re-runs within 90 days." },
   { q: /price|cost|\$24/i, a: "The service is $24.95 flat for all 3 documents. No subscriptions, no hidden fees." },
 ];
 
 function getChatResponse(msg) {
   for (const item of FAQ) { if (item.q.test(msg)) return item.a; }
-  return "Great question. For anything specific to your report, email support@mcflamingo.com and we'll respond within 1 business day.";
+  return "Good question. Email support@mcflamingo.com for anything specific to your report — we respond within 1 business day.";
 }
 
 const bubble = document.getElementById('chatBubble');
@@ -127,6 +162,7 @@ function sendChat() {
 send.addEventListener('click', sendChat);
 input.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
 
-// Header shadow on scroll
-const header = document.querySelector('.header');
-window.addEventListener('scroll', () => { header.style.boxShadow = scrollY > 10 ? '0 2px 16px rgba(0,0,0,0.08)' : ''; }, { passive: true });
+window.addEventListener('scroll', () => {
+  const header = document.querySelector('.header');
+  if (header) header.style.boxShadow = scrollY > 10 ? '0 2px 16px rgba(0,0,0,0.08)' : '';
+}, { passive: true });
