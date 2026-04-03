@@ -169,3 +169,23 @@ section{padding-block:clamp(64px,8vw,96px)}
   .step{grid-template-columns:48px 1fr}
   .chat-window{width:calc(100vw - 48px);right:16px}
 }
+
+/* Form checkboxes */
+.form-checkboxes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.form-check{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;transition:border-color 150ms}
+.form-check:hover{border-color:var(--red)}
+.form-check input[type=checkbox]{accent-color:var(--red);width:16px;height:16px;cursor:pointer}
+.form-check.locked{opacity:0.7;cursor:default}
+.badge-always{font-size:10px;background:var(--red);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:600;letter-spacing:0.5px}
+
+/* Signature pad */
+.sig-container{border:2px dashed var(--border);border-radius:10px;background:#fafafa;padding:4px;position:relative}
+.sig-container canvas{display:block;border-radius:8px;cursor:crosshair;width:100%;height:130px}
+.sig-actions{display:flex;gap:8px;padding:8px 4px 4px}
+.btn-sig-clear,.btn-sig-type{font-size:12px;padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text-muted);transition:all 150ms}
+.btn-sig-clear:hover{border-color:#e74c3c;color:#e74c3c}
+.btn-sig-type:hover{border-color:var(--red);color:var(--red)}
+.sig-type-area{margin-top:4px}
+.sig-type-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:8px;font-size:18px;font-style:italic;font-family:Georgia,serif;background:#fafafa}
+.sig-type-input:focus{outline:none;border-color:var(--red)}
+@media(max-width:600px){.form-checkboxes{grid-template-columns:1fr}}

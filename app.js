@@ -56,7 +56,85 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
   }
 });
 
-// File upload submit
+// ── Signature Pad Setup ──────────────────────────────────────────────────
+let sigPad = null;
+
+function initSignaturePad() {
+  const canvas = document.getElementById('signaturePad');
+  if (!canvas || !window.SignaturePad) return;
+  // Resize canvas to actual pixel size
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width || 480;
+  canvas.height = 130;
+  sigPad = new SignaturePad(canvas, {
+    penColor: '#0D1B2A',
+    backgroundColor: 'rgba(255,255,255,0)',
+    minWidth: 1.5,
+    maxWidth: 3,
+  });
+  sigPad.addEventListener('endStroke', () => {
+    document.getElementById('sig-status').textContent = '✓ Signature captured';
+    document.getElementById('sig-status').style.color = '#27ae60';
+  });
+}
+
+document.getElementById('sigClearBtn')?.addEventListener('click', () => {
+  if (sigPad) sigPad.clear();
+  document.getElementById('sig-status').textContent = '';
+});
+
+document.getElementById('sigTypeToggle')?.addEventListener('click', () => {
+  document.getElementById('sig-draw-area').classList.add('hidden');
+  document.getElementById('sig-type-area').classList.remove('hidden');
+  document.getElementById('typedSignature')?.focus();
+});
+
+document.getElementById('sigDrawToggle')?.addEventListener('click', () => {
+  document.getElementById('sig-type-area').classList.add('hidden');
+  document.getElementById('sig-draw-area').classList.remove('hidden');
+  if (!sigPad) initSignaturePad();
+});
+
+document.getElementById('typedSignature')?.addEventListener('input', (e) => {
+  if (e.target.value.trim()) {
+    document.getElementById('sig-status').textContent = `✓ Typed signature: "${e.target.value.trim()}"`;
+    document.getElementById('sig-status').style.color = '#27ae60';
+  } else {
+    document.getElementById('sig-status').textContent = '';
+  }
+});
+
+function getSignatureData() {
+  // Check typed signature first
+  const typed = document.getElementById('typedSignature')?.value?.trim();
+  const typeArea = document.getElementById('sig-type-area');
+  if (typeArea && !typeArea.classList.contains('hidden') && typed) {
+    // Render typed name to canvas for backend
+    return { type: 'typed', name: typed };
+  }
+  // Check drawn signature
+  if (sigPad && !sigPad.isEmpty()) {
+    return { type: 'drawn', dataUrl: sigPad.toDataURL('image/png') };
+  }
+  return null;
+}
+
+function getSelectedForms() {
+  const checks = document.querySelectorAll('#formSelector input[type=checkbox]:checked');
+  return Array.from(checks).map(c => c.value).join(',');
+}
+
+// Init sig pad when step 2 becomes visible
+const origShowStep = window.showStep;
+function showStep(id) {
+  document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id)?.classList.remove('hidden');
+  if (id === 'step2') {
+    setTimeout(() => initSignaturePad(), 100);
+  }
+}
+
+// ── File upload submit ──────────────────────────────────────────────────
 document.getElementById('uploadBtn').addEventListener('click', async () => {
   const bankFile = document.getElementById('bankFile').files[0];
   if (!bankFile) { alert('Please upload your bank statement first.'); return; }
@@ -77,6 +155,22 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
     
     const posFile = document.getElementById('posFile').files[0];
     if (posFile) fd.append('posFile', posFile);
+
+    // Add selected forms
+    const selectedForms = getSelectedForms();
+    if (selectedForms) fd.append('selectedForms', selectedForms);
+
+    // Add signature data if provided
+    const sigData = getSignatureData();
+    if (sigData) {
+      if (sigData.type === 'drawn') {
+        fd.append('signatureData', sigData.dataUrl);
+      } else if (sigData.type === 'typed') {
+        // Send typed name — backend renders it as a signature image
+        fd.append('signatureData', `typed:${sigData.name}`);
+      }
+      fd.append('signerName', formData.projectName || '');
+    }
 
     const res = await fetch(`${API}/api/financial-triage`, {
       method: 'POST',
@@ -104,11 +198,6 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
     alert('Error: ' + err.message + '\n\nEmail support@mcflamingo.com if this keeps happening.');
   }
 });
-
-function showStep(id) {
-  document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
 
 // Chat
 const FAQ = [

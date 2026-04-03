@@ -267,7 +267,40 @@
                 <div class="file-name" id="posName"></div>
               </div>
             </div>
-            <button type="button" class="btn btn-primary btn-large btn-full" id="uploadBtn">
+            <!-- FORM SELECTOR -->
+            <div class="form-group" style="text-align:left;margin:24px 0 0">
+              <label style="font-weight:600;font-size:15px">Which lenders do you need forms for?</label>
+              <p class="hint" style="margin-top:4px">We generate each institution's official form pre-filled with your data.</p>
+              <div class="form-checkboxes" id="formSelector">
+                <label class="form-check locked"><input type="checkbox" value="sba413" checked disabled> SBA Form 413 <span class="badge-always">Always included</span></label>
+                <label class="form-check"><input type="checkbox" value="chase" checked> Chase Bank PFS</label>
+                <label class="form-check"><input type="checkbox" value="bofa" checked> Bank of America PFS</label>
+                <label class="form-check"><input type="checkbox" value="wf" checked> Wells Fargo PFS</label>
+                <label class="form-check"><input type="checkbox" value="truist" checked> Truist PFS</label>
+                <label class="form-check"><input type="checkbox" value="business_debt"> Business Debt Schedule</label>
+                <label class="form-check"><input type="checkbox" value="personal_debt"> Personal Debt Schedule</label>
+              </div>
+            </div>
+
+            <!-- SIGNATURE PAD -->
+            <div class="form-group" style="text-align:left;margin:24px 0 0">
+              <label style="font-weight:600;font-size:15px">Sign your documents <span style="color:#7A7974;font-weight:400;font-size:13px">(optional but recommended)</span></label>
+              <p class="hint" style="margin-top:4px">Your signature will be embedded on all generated forms. Draw below or type your name.</p>
+              <div id="sig-draw-area" class="sig-container">
+                <canvas id="signaturePad" width="480" height="130"></canvas>
+                <div class="sig-actions">
+                  <button type="button" id="sigClearBtn" class="btn-sig-clear">Clear</button>
+                  <button type="button" id="sigTypeToggle" class="btn-sig-type">Type instead</button>
+                </div>
+              </div>
+              <div id="sig-type-area" class="sig-type-area hidden">
+                <input type="text" id="typedSignature" placeholder="Type your full legal name" class="sig-type-input">
+                <button type="button" id="sigDrawToggle" class="btn-sig-type" style="margin-top:8px">Draw instead</button>
+              </div>
+              <p id="sig-status" class="hint" style="margin-top:6px;"></p>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-large btn-full" id="uploadBtn" style="margin-top:24px">
               Generate My Reports →
             </button>
           </div>
@@ -294,6 +327,9 @@
             <li>✅ Financial Analysis Report</li>
             <li>✅ Vendor Credit Letter</li>
             <li>✅ Bank Loan Request Letter</li>
+            <li>✅ SBA Form 413 (pre-filled)</li>
+            <li>✅ Chase / BofA / WF / Truist PFS</li>
+            <li>✅ Signed with your e-signature</li>
           </ul>
         </div>
         <div class="sidebar-card">
@@ -351,6 +387,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
