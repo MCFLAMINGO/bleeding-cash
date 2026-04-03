@@ -6,14 +6,36 @@ function setupDrop(dropId, inputId, nameId) {
   const input = document.getElementById(inputId);
   const name = document.getElementById(nameId);
   if (!drop || !input) return;
-  drop.addEventListener('click', () => input.click());
+
+  function setFile(file) {
+    if (!file) return;
+    // Use DataTransfer to set files on input
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    name.innerHTML = `<span style="color:#27ae60">&#10003; ${file.name}</span> <button type="button" class="file-clear-btn" title="Remove file">&times;</button>`;
+    drop.classList.add('has-file');
+    // Clear button
+    name.querySelector('.file-clear-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      input.value = '';
+      name.innerHTML = '';
+      drop.classList.remove('has-file');
+    });
+  }
+
+  drop.addEventListener('click', (e) => {
+    if (e.target.classList.contains('file-clear-btn')) return;
+    if (e.target.tagName === 'LABEL') return;
+    input.click();
+  });
   drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', e => { 
-    e.preventDefault(); drop.classList.remove('over'); 
-    if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; name.textContent = '✓ ' + e.dataTransfer.files[0].name; } 
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
   });
-  input.addEventListener('change', () => { if (input.files[0]) name.textContent = '✓ ' + input.files[0].name; });
+  input.addEventListener('change', () => { if (input.files[0]) setFile(input.files[0]); });
   drop.querySelectorAll('label').forEach(l => l.addEventListener('click', e => e.stopPropagation()));
 }
 setupDrop('bankDrop', 'bankFile', 'bankName');

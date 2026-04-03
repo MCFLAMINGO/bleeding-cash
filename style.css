@@ -189,3 +189,8 @@ section{padding-block:clamp(64px,8vw,96px)}
 .sig-type-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:8px;font-size:18px;font-style:italic;font-family:Georgia,serif;background:#fafafa}
 .sig-type-input:focus{outline:none;border-color:var(--red)}
 @media(max-width:600px){.form-checkboxes{grid-template-columns:1fr}}
+
+/* File clear button */
+.file-clear-btn{background:none;border:none;color:#e74c3c;font-size:18px;font-weight:700;cursor:pointer;padding:0 4px;line-height:1;vertical-align:middle;margin-left:6px}
+.file-clear-btn:hover{color:#c0392b}
+.drop-zone.has-file{border-color:#27ae60;background:rgba(39,174,96,0.04)}
