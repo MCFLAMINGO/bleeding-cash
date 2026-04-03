@@ -242,31 +242,11 @@
           </button>
         </div>
 
-        <!-- Step 2: Upload files -->
+        <!-- Step 2: Form selector + signature -->
         <div class="form-step hidden" id="step2">
           <div class="payment-box">
-            <h3>Upload your files</h3>
-            <p style="margin-bottom:24px">Your session is ready. Upload your bank statement and POS data below to generate your reports.</p>
-            <div class="form-group" style="text-align:left;margin-bottom:20px">
-              <label>Bank statement — last 90 days <span class="req">*</span></label>
-              <div class="file-drop" id="bankDrop">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span>Drop bank export here or <label for="bankFile" class="file-link">browse</label></span>
-                <span class="formats">XLS · XLSX · CSV</span>
-                <input type="file" id="bankFile" accept=".xls,.xlsx,.csv,.pdf,.txt" style="display:none">
-                <div class="file-name" id="bankName"></div>
-              </div>
-            </div>
-            <div class="form-group" style="text-align:left;margin-bottom:24px">
-              <label>POS / sales report <span class="opt">(optional)</span></label>
-              <div class="file-drop" id="posDrop">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span>Drop POS export here or <label for="posFile" class="file-link">browse</label></span>
-                <span class="formats">XLS · XLSX · CSV</span>
-                <input type="file" id="posFile" accept=".xls,.xlsx,.csv,.pdf,.txt" style="display:none">
-                <div class="file-name" id="posName"></div>
-              </div>
-            </div>
+            <h3 style="margin-bottom:4px">Almost there</h3>
+            <p style="margin-bottom:20px;color:#7A7974">Choose your forms and sign below, then generate.</p>
             <!-- FORM SELECTOR -->
             <div class="form-group" style="text-align:left;margin:24px 0 0">
               <label style="font-weight:600;font-size:15px">Which lenders do you need forms for?</label>
