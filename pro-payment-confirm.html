@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirming Payment — bleeding.cash Pro</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+    .confirm-card { background: #fff; border: 1px solid var(--border); border-radius: 1rem; padding: 56px 48px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+    .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 32px; font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; }
+    .pro-badge { background: #01696F; color: #fff; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
+    .spinner-lg { width: 48px; height: 48px; border: 3px solid rgba(1,105,111,0.15); border-top-color: #01696F; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 24px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+    p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+    .success-icon { font-size: 3rem; margin-bottom: 16px; }
+    .error-msg { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 0.5rem; padding: 12px 16px; font-size: 0.825rem; color: #dc2626; margin-top: 16px; display: none; }
+    .btn-teal { display: inline-block; margin-top: 24px; background: #01696F; color: #fff; padding: 12px 28px; border-radius: 0.5rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="confirm-card">
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="8" fill="#c0392b"/>
+      <path d="M16 6C16 6 10 10 10 17C10 20.866 12.686 24 16 24C19.314 24 22 20.866 22 17C22 10 16 6 16 6Z" fill="white" opacity="0.9"/>
+      <path d="M16 13C16 13 13 15.5 13 18.5C13 20.433 14.343 22 16 22C17.657 22 19 20.433 19 18.5C19 15.5 16 13 16 13Z" fill="#c0392b"/>
+    </svg>
+    bleeding.cash <span class="pro-badge">PRO</span>
+  </div>
+
+  <div id="loadingState">
+    <div class="spinner-lg"></div>
+    <h1>Confirming payment...</h1>
+    <p>Checking blockchain confirmation. This usually takes 10–30 seconds.</p>
+  </div>
+
+  <div id="successState" style="display:none;">
+    <div class="success-icon">✅</div>
+    <h1>You're in.</h1>
+    <p>Payment confirmed. Your 3-day trial starts now. Run your first client report.</p>
+    <a href="/pro/dashboard" class="btn-teal">Go to Dashboard →</a>
+  </div>
+
+  <div id="errorState" style="display:none;">
+    <div class="success-icon">⚠️</div>
+    <h1>Still waiting...</h1>
+    <p>Payment may still be processing. Check your wallet or try logging in — your account is ready.</p>
+    <a href="/pro/login" class="btn-teal">Log In to Dashboard →</a>
+  </div>
+
+  <div class="error-msg" id="errMsg"></div>
+</div>
+
+<script>
+const RAILWAY = 'https://gsb-swarm-production.up.railway.app';
+
+async function confirmPayment() {
+  const receiptId = localStorage.getItem('pro_pending_receipt');
+  const email     = localStorage.getItem('pro_pending_email');
+  const firm      = localStorage.getItem('pro_pending_firm');
+  const token     = localStorage.getItem('pro_signup_token');
+
+  if (!receiptId) {
+    // No pending receipt — maybe they're already logged in
+    const existingToken = localStorage.getItem('pro_token');
+    if (existingToken) {
+      window.location.href = '/pro/dashboard';
+      return;
+    }
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    return;
+  }
+
+  // Poll up to 60s (30 x 2s)
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      const res = await fetch(`${RAILWAY}/api/pro/check-payment?receiptId=${encodeURIComponent(receiptId)}`);
+      const data = await res.json();
+
+      if (data.paid) {
+        // Store the refreshed token from payment confirmation
+        if (data.token) {
+          localStorage.setItem('pro_token', data.token);
+        } else if (token) {
+          localStorage.setItem('pro_token', token);
+        }
+        if (email)  localStorage.setItem('pro_email', email);
+        if (firm)   localStorage.setItem('pro_firm', firm);
+
+        // Clean up pending keys
+        localStorage.removeItem('pro_pending_receipt');
+        localStorage.removeItem('pro_pending_email');
+        localStorage.removeItem('pro_pending_firm');
+        localStorage.removeItem('pro_signup_token');
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('successState').style.display = 'block';
+
+        // Auto-redirect after 2s
+        setTimeout(() => window.location.href = '/pro/dashboard', 2000);
+        return;
+      }
+    } catch { /* keep polling */ }
+  }
+
+  // Timed out — still store what we have and let them log in
+  if (token) localStorage.setItem('pro_token', token);
+  if (email) localStorage.setItem('pro_email', email);
+  if (firm)  localStorage.setItem('pro_firm', firm);
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
+}
+
+confirmPayment();
+</script>
+</body>
+</html>
