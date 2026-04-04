@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bleeding.cash Pro — For Restaurant Consultants</title>
+  <meta name="description" content="Run unlimited financial triage reports for your restaurant clients. $24.95 for a 3-day trial, then $149/month unlimited.">
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .pro-badge { background: #1B474D; color: #BCE2E7; }
+    .teal { color: #01696F; }
+    .btn-teal { background: #01696F; color: #fff; box-shadow: 0 2px 12px rgba(1,105,111,0.2); }
+    .btn-teal:hover { background: #015a60; transform: translateY(-1px); }
+    .pro-hero { background: linear-gradient(135deg, #0d2d30 0%, #1B474D 100%); color: #fff; padding-block: clamp(80px,12vw,120px); }
+    .pro-hero .hero-badge { background: rgba(188,226,231,0.15); border-color: rgba(188,226,231,0.3); color: #BCE2E7; }
+    .pro-hero .hero-headline { color: #fff; max-width: 760px; }
+    .pro-hero .hero-sub { color: rgba(255,255,255,0.7); }
+    .pro-hero .hero-note { color: rgba(255,255,255,0.4); }
+    .trial-card { background: #fff; border: 2px solid #01696F; border-radius: 1rem; padding: 40px; max-width: 480px; }
+    .trial-price { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: #01696F; line-height: 1; }
+    .trial-price sup { font-size: 1.5rem; vertical-align: super; }
+    .trial-then { font-size: 0.875rem; color: var(--muted); margin-top: 4px; }
+    .resp-box { background: #fff8f0; border: 1px solid #e8a87c; border-radius: 0.75rem; padding: 20px 24px; margin-top: 16px; }
+    .resp-box p { font-size: 0.8rem; color: #7a4a20; line-height: 1.6; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 48px; }
+    .feature-item { padding: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .feature-item .icon { font-size: 1.75rem; margin-bottom: 14px; }
+    .feature-item h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+    .feature-item p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 32px; }
+    .compare-table th, .compare-table td { padding: 14px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+    .compare-table th { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface-2); }
+    .compare-table td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table td:not(:first-child) { color: var(--muted); text-align: center; }
+    .compare-table .check { color: #01696F; font-weight: 700; font-size: 1rem; }
+    .compare-table .pro-col { background: rgba(1,105,111,0.04); }
+    .use-case { display: flex; gap: 20px; padding: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 16px; }
+    .use-case-icon { font-size: 2rem; flex-shrink: 0; }
+    .use-case h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .use-case p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="container header-inner">
+    <a href="/" class="logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#c0392b"/>
+        <path d="M16 6C16 6 10 10 10 17C10 20.866 12.686 24 16 24C19.314 24 22 20.866 22 17C22 10 16 6 16 6Z" fill="white" opacity="0.9"/>
+        <path d="M16 13C16 13 13 15.5 13 18.5C13 20.433 14.343 22 16 22C17.657 22 19 20.433 19 18.5C19 15.5 16 13 16 13Z" fill="#c0392b"/>
+      </svg>
+      <span class="logo-text">bleeding.cash</span>
+    </a>
+    <nav>
+      <a href="/">Consumer</a>
+      <a href="/pro" class="teal" style="font-weight:600;">Pro ↗</a>
+      <a href="/pro/login" class="btn btn-nav" style="background:#01696F;">Log In</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="pro-hero">
+  <div class="container">
+    <div class="hero-badge">For Restaurant Consultants</div>
+    <h1 class="hero-headline">Run triage on every client.<br>In minutes, not days.</h1>
+    <p class="hero-sub">Upload a client's bank statement and POS export. Get a full financial analysis, vendor credit letter, bank loan letter, and third-party delivery cost analysis — ready to present.</p>
+
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;margin-top:48px;">
+      <!-- Trial card -->
+      <div class="trial-card">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#01696F;margin-bottom:16px;">Pro Plan</div>
+        <div class="trial-price"><sup>$</sup>24.95</div>
+        <div class="trial-then">3-day trial · then $149/month unlimited runs</div>
+        <div style="margin:24px 0;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> Unlimited client reports
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> Named client workspace
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> 90-day report history
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> Re-run when new data arrives
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> 3PD delivery analysis (Toast)
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:0.875rem;">
+            <span style="color:#01696F;font-weight:700;">✓</span> Cancel anytime
+          </div>
+        </div>
+        <a href="/pro/signup" class="btn btn-teal btn-large btn-full">Start 3-Day Trial — $24.95</a>
+        <div class="resp-box" style="margin-top:20px;">
+          <p>By signing up, you confirm that you have authorization from each client whose data you process. You accept full data handling responsibility. MCFL Restaurant Holdings LLC assumes no liability.</p>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="color:#fff;padding-top:16px;">
+        <div style="display:flex;flex-direction:column;gap:28px;">
+          <div>
+            <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;line-height:1;">~60 sec</div>
+            <div style="font-size:0.875rem;opacity:0.6;margin-top:4px;">per client report</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;line-height:1;">4 docs</div>
+            <div style="font-size:0.875rem;opacity:0.6;margin-top:4px;">per run (PDF + Excel)</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;line-height:1;">$0</div>
+            <div style="font-size:0.875rem;opacity:0.6;margin-top:4px;">per additional run after trial</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section>
+  <div class="container">
+    <div class="section-label">Who it's for</div>
+    <h2 class="section-title" style="margin-bottom:32px;">Built for people who advise restaurants</h2>
+
+    <div class="use-case">
+      <div class="use-case-icon">📊</div>
+      <div>
+        <h3>Restaurant Consultants</h3>
+        <p>You're advising 10–40 locations. Running this manually takes hours per client. Now you upload two files and have a presentation-ready report in 60 seconds — with vendor negotiation letters already drafted.</p>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-icon">🏢</div>
+      <div>
+        <h3>Multi-Unit Operators</h3>
+        <p>You own or manage multiple locations. Run triage on each one at the start of every quarter. Spot which locations are bleeding before it becomes a crisis.</p>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-icon">📋</div>
+      <div>
+        <h3>Franchise Business Advisors</h3>
+        <p>Your franchisees send you financials and you have to make sense of them fast. Run the data, identify cash flow stress points, and have the conversation armed with numbers.</p>
+      </div>
+    </div>
+    <div class="use-case">
+      <div class="use-case-icon">💼</div>
+      <div>
+        <h3>Restaurant Turnaround Specialists</h3>
+        <p>Your first 48 hours with a new client are about understanding the damage. This gets you there in 60 seconds — cash flow, debt service, vendor spend, delivery platform cost bleed, and a bank loan letter ready to go.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section-alt">
+  <div class="container">
+    <div class="section-label">What you get</div>
+    <h2 class="section-title" style="margin-bottom:0;">Everything in one run</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="icon">📈</div>
+        <h3>Financial Analysis Report</h3>
+        <p>KPI dashboard, monthly cash flow, top vendors, industry benchmarks, near-zero balance events, and key findings. PDF + Excel included.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🤝</div>
+        <h3>Vendor Credit Letter</h3>
+        <p>Ready-to-send letter requesting extended payment terms. Includes the client's actual numbers and a concrete repayment proposal.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🏦</div>
+        <h3>Bank Loan Request Letter</h3>
+        <p>SBA 7(a) format with executive summary, financial snapshot, current debt obligations, 6-month projection, and loan request details.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🚗</div>
+        <h3>3PD Delivery Analysis</h3>
+        <p>When a Toast Sales Summary is uploaded — DoorDash, Uber Eats, and Grubhub commission breakdown with in-house driver ROI calculation.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">📁</div>
+        <h3>Client Workspace</h3>
+        <p>Every run is saved under the client name you assign. Re-download any report for 90 days. Re-run when new data comes in.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🔒</div>
+        <h3>Data Deleted Immediately</h3>
+        <p>Source files are securely deleted the moment the report is generated. Reports are stored for 90 days then purged.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section>
+  <div class="container">
+    <div class="section-label">Consumer vs Pro</div>
+    <h2 class="section-title" style="margin-bottom:0;">What's different about Pro</h2>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Consumer<br><span style="font-weight:400;text-transform:none;letter-spacing:0;">$24.95/run</span></th>
+          <th class="pro-col" style="color:#01696F;">Pro<br><span style="font-weight:400;text-transform:none;letter-spacing:0;">$149/mo unlimited</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Financial Analysis PDF</td><td class="check">✓</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Vendor Credit Letter</td><td class="check">✓</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Bank Loan Letter</td><td class="check">✓</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Excel Data Export</td><td class="check">✓</td><td class="check pro-col">✓</td></tr>
+        <tr><td>3PD Delivery Analysis</td><td class="check">✓</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Named client runs</td><td style="color:var(--faint);">—</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Report history (90 days)</td><td style="color:var(--faint);">—</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Re-run anytime</td><td style="color:var(--faint);">—</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Multiple clients</td><td style="color:var(--faint);">—</td><td class="check pro-col">✓</td></tr>
+        <tr><td>Unlimited runs</td><td style="color:var(--faint);">—</td><td class="check pro-col">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-alt">
+  <div class="container" style="text-align:center;max-width:600px;">
+    <div class="section-label">Get started</div>
+    <h2 class="section-title" style="margin-bottom:16px;">3-day trial for $24.95</h2>
+    <p style="color:var(--muted);margin-bottom:32px;">Run unlimited reports during your trial. If it saves you time on even one client, it pays for itself. Then $149/month — cancel anytime.</p>
+    <a href="/pro/signup" class="btn btn-teal btn-large">Start Trial — $24.95</a>
+    <p style="font-size:0.75rem;color:var(--faint);margin-top:16px;">No contract. Cancel before day 3 and you won't be charged $149.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:#1a1714;color:rgba(255,255,255,0.4);padding-block:32px;">
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <span style="font-size:0.8rem;">bleeding.cash Pro · operated by MCFL Restaurant Holdings LLC · Informational only. Not financial, legal, or accounting advice.</span>
+    <div style="display:flex;gap:24px;font-size:0.8rem;">
+      <a href="/privacy" style="color:rgba(255,255,255,0.4);">Privacy</a>
+      <a href="/terms" style="color:rgba(255,255,255,0.4);">Terms</a>
+      <a href="mailto:support@bleeding.cash" style="color:rgba(255,255,255,0.4);">support@bleeding.cash</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
