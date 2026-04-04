@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — bleeding.cash Pro</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: #f5f4f1; }
+    .dash-header { background: #fff; border-bottom: 1px solid var(--border); padding: 0; position: sticky; top: 0; z-index: 100; }
+    .dash-header-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px clamp(20px,5vw,48px); }
+    .dash-logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; text-decoration: none; color: inherit; }
+    .pro-badge { background: #01696F; color: #fff; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 100px; }
+    .trial-bar { background: rgba(1,105,111,0.08); border-bottom: 1px solid rgba(1,105,111,0.15); padding: 10px clamp(20px,5vw,48px); font-size: 0.8rem; color: #01696F; display: flex; justify-content: space-between; align-items: center; }
+    .dash-main { max-width: 900px; margin: 0 auto; padding: 32px clamp(16px,4vw,40px); }
+    .dash-section-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; }
+
+    /* Upload card */
+    .upload-card { background: #fff; border: 1.5px dashed #01696F; border-radius: 1rem; padding: 36px; margin-bottom: 32px; }
+    .upload-card h2 { font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; margin-bottom: 6px; }
+    .upload-card p { font-size: 0.875rem; color: var(--muted); margin-bottom: 24px; }
+    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .upload-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 0.5rem; font-size: 0.875rem; background: var(--surface); transition: border-color 150ms; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #01696F; }
+    .file-drop { border: 1.5px dashed var(--border); border-radius: 0.5rem; padding: 20px; text-align: center; font-size: 0.8rem; color: var(--muted); cursor: pointer; transition: all 150ms; background: var(--surface); }
+    .file-drop:hover, .file-drop.drag-over { border-color: #01696F; background: rgba(1,105,111,0.04); color: #01696F; }
+    .file-drop input { display: none; }
+    .file-chosen { color: #01696F; font-weight: 600; }
+    .resp-confirm { display: flex; gap: 10px; align-items: flex-start; font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+    .resp-confirm input { flex-shrink: 0; margin-top: 2px; accent-color: #01696F; }
+    .btn-teal { background: #01696F; color: #fff; border: none; padding: 13px 28px; border-radius: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 150ms; }
+    .btn-teal:hover { background: #015a60; }
+    .btn-teal:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Progress */
+    .progress-wrap { display: none; margin-top: 20px; }
+    .progress-bar-bg { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .progress-bar { height: 100%; background: #01696F; border-radius: 100px; width: 0%; transition: width 0.4s ease; }
+    .progress-msg { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+
+    /* History */
+    .history-card { background: #fff; border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; }
+    .history-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .history-header h2 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; }
+    .history-empty { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 0.875rem; }
+    .history-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .history-row:last-child { border-bottom: none; }
+    .history-client { font-weight: 600; font-size: 0.875rem; }
+    .history-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .history-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-sm { padding: 6px 14px; border-radius: 0.4rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: #fff; transition: all 150ms; }
+    .btn-sm:hover { border-color: #01696F; color: #01696F; }
+    .btn-sm-primary { background: #01696F; color: #fff; border-color: #01696F; }
+    .btn-sm-primary:hover { background: #015a60; }
+    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-complete { background: rgba(1,105,111,0.1); color: #01696F; }
+    .status-running { background: rgba(234,179,8,0.1); color: #92400e; }
+    .status-failed { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .alert { padding: 12px 16px; border-radius: 0.5rem; font-size: 0.825rem; margin-bottom: 16px; display: none; }
+    .alert-error { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+    .alert-success { background: rgba(1,105,111,0.08); border: 1px solid rgba(1,105,111,0.25); color: #01696F; }
+  </style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner">
+    <a href="/pro/dashboard" class="dash-logo">
+      <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#c0392b"/>
+        <path d="M16 6C16 6 10 10 10 17C10 20.866 12.686 24 16 24C19.314 24 22 20.866 22 17C22 10 16 6 16 6Z" fill="white" opacity="0.9"/>
+        <path d="M16 13C16 13 13 15.5 13 18.5C13 20.433 14.343 22 16 22C17.657 22 19 20.433 19 18.5C19 15.5 16 13 16 13Z" fill="#c0392b"/>
+      </svg>
+      <span>bleeding.cash</span>
+      <span class="pro-badge">PRO</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <span id="firmLabel" style="font-size:0.825rem;color:var(--muted);"></span>
+      <button onclick="logout()" style="font-size:0.8rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 0;">Log out</button>
+    </div>
+  </div>
+</header>
+
+<div class="trial-bar" id="trialBar" style="display:none;">
+  <span id="trialMsg"></span>
+  <span style="font-weight:600;">$149/month after trial · cancel anytime</span>
+</div>
+
+<main class="dash-main">
+
+  <!-- Run new report -->
+  <div class="upload-card">
+    <h2>Run a new client report</h2>
+    <p>Upload bank statement + optional POS export. Reports ready in ~60 seconds.</p>
+
+    <div class="alert alert-error" id="runError"></div>
+    <div class="alert alert-success" id="runSuccess"></div>
+
+    <div class="upload-grid-3">
+      <div class="form-group" style="grid-column:span 2;">
+        <label>Client Name (internal — not shown in report)</label>
+        <input type="text" id="clientName" placeholder="e.g. McFlamingo Beach" required>
+      </div>
+      <div class="form-group">
+        <label>Period</label>
+        <input type="text" id="period" placeholder="e.g. Q1 2026" value="Q1 2026">
+      </div>
+    </div>
+
+    <div class="upload-grid">
+      <div class="form-group">
+        <label>Bank Statement (XLS / XLSX / CSV) *</label>
+        <div class="file-drop" id="bankDrop" onclick="document.getElementById('bankFile').click()">
+          <input type="file" id="bankFile" accept=".xls,.xlsx,.csv" onchange="onFileChosen('bankFile','bankDrop','bankLabel')">
+          <div id="bankLabel">Click to upload or drag & drop</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>POS Export — Toast / Square / Clover (optional)</label>
+        <div class="file-drop" id="posDrop" onclick="document.getElementById('posFile').click()">
+          <input type="file" id="posFile" accept=".xls,.xlsx,.csv" onchange="onFileChosen('posFile','posDrop','posLabel')">
+          <div id="posLabel">Click to upload or drag & drop</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resp-confirm">
+      <input type="checkbox" id="clientConsent">
+      I confirm I have authorization from this client to process their financial data.
+    </div>
+
+    <button class="btn-teal" id="runBtn" onclick="runReport()">Generate Reports</button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-msg" id="progressMsg">Uploading files...</div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card">
+    <div class="history-header">
+      <h2>Client Report History</h2>
+      <button onclick="loadHistory()" style="font-size:0.75rem;color:#01696F;background:none;border:none;cursor:pointer;font-weight:600;">Refresh</button>
+    </div>
+    <div id="historyList"><div class="history-empty">Loading history...</div></div>
+  </div>
+
+</main>
+
+<script>
+const RAILWAY = 'https://gsb-swarm-production.up.railway.app';
+let proToken = localStorage.getItem('pro_token');
+let proFirm  = localStorage.getItem('pro_firm') || '';
+
+// Auth guard
+if (!proToken) window.location.href = '/pro/login';
+
+// Show firm name
+document.getElementById('firmLabel').textContent = proFirm;
+
+// Show trial status
+async function loadAccountStatus() {
+  try {
+    const res = await fetch(`${RAILWAY}/api/pro/account`, {
+      headers: { 'Authorization': `Bearer ${proToken}` }
+    });
+    const data = await res.json();
+    if (data.error) { logout(); return; }
+
+    const bar = document.getElementById('trialBar');
+    const msg = document.getElementById('trialMsg');
+    if (data.plan === 'trial') {
+      const daysLeft = data.trialDaysLeft || 0;
+      bar.style.display = 'flex';
+      msg.textContent = `Trial: ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining · ${data.runsUsed || 0} report${data.runsUsed !== 1 ? 's' : ''} run so far`;
+    } else if (data.plan === 'pro') {
+      bar.style.display = 'flex';
+      bar.style.background = 'rgba(1,105,111,0.06)';
+      msg.textContent = `Pro · ${data.runsUsed || 0} reports run this month`;
+    }
+  } catch {}
+}
+
+function logout() {
+  localStorage.removeItem('pro_token');
+  localStorage.removeItem('pro_email');
+  localStorage.removeItem('pro_firm');
+  window.location.href = '/pro/login';
+}
+
+function onFileChosen(inputId, dropId, labelId) {
+  const file = document.getElementById(inputId).files[0];
+  if (file) {
+    document.getElementById(labelId).innerHTML = `<span class="file-chosen">✓ ${file.name}</span>`;
+    document.getElementById(dropId).style.borderColor = '#01696F';
+  }
+}
+
+// Drag & drop
+['bankDrop','posDrop'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.classList.remove('drag-over');
+    const fileInputId = id === 'bankDrop' ? 'bankFile' : 'posFile';
+    const labelId     = id === 'bankDrop' ? 'bankLabel' : 'posLabel';
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById(fileInputId).files = dt.files;
+      onFileChosen(fileInputId, id, labelId);
+    }
+  });
+});
+
+function setProgress(pct, msg) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressMsg').textContent = msg;
+}
+
+async function runReport() {
+  const clientName = document.getElementById('clientName').value.trim();
+  const period     = document.getElementById('period').value.trim() || 'Current';
+  const bankFile   = document.getElementById('bankFile').files[0];
+  const posFile    = document.getElementById('posFile').files[0];
+  const consent    = document.getElementById('clientConsent').checked;
+  const errEl      = document.getElementById('runError');
+  const succEl     = document.getElementById('runSuccess');
+  const btn        = document.getElementById('runBtn');
+  const prog       = document.getElementById('progressWrap');
+
+  errEl.style.display = 'none';
+  succEl.style.display = 'none';
+
+  if (!clientName) { showError('Please enter a client name.'); return; }
+  if (!bankFile)    { showError('Please upload a bank statement.'); return; }
+  if (!consent)     { showError('Please confirm client authorization.'); return; }
+
+  btn.disabled = true;
+  prog.style.display = 'block';
+  setProgress(10, 'Uploading files...');
+
+  try {
+    // Get test token (pro accounts bypass payment)
+    const tokenRes = await fetch(`${RAILWAY}/api/pro/run-token`, {
+      headers: { 'Authorization': `Bearer ${proToken}` }
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || tokenData.error) {
+      showError(tokenData.error || 'Account error. Please log in again.');
+      btn.disabled = false; prog.style.display = 'none'; return;
+    }
+
+    setProgress(25, 'Analyzing data...');
+
+    const fd = new FormData();
+    fd.append('bankFile', bankFile);
+    if (posFile) fd.append('posFile', posFile);
+    fd.append('projectName', clientName);
+    fd.append('period', period);
+    fd.append('email', localStorage.getItem('pro_email') || '');
+    fd.append('agreedToTos', 'true');
+    fd.append('uploadToken', tokenData.uploadToken);
+    fd.append('proToken', proToken);
+    fd.append('clientLabel', clientName);
+
+    setProgress(40, 'Running analysis...');
+
+    const res = await fetch(`${RAILWAY}/api/financial-triage`, {
+      method: 'POST',
+      body: fd
+    });
+
+    setProgress(80, 'Generating reports...');
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      showError(data.error || 'Analysis failed. Try again or contact support.');
+      btn.disabled = false; prog.style.display = 'none'; return;
+    }
+
+    setProgress(100, 'Done!');
+
+    succEl.textContent = `✓ Reports ready for "${clientName}" — ${data.emailSent ? 'sent to your email' : 'check history below'}.`;
+    succEl.style.display = 'block';
+
+    // Reset form
+    setTimeout(() => {
+      document.getElementById('clientName').value = '';
+      document.getElementById('bankFile').value = '';
+      document.getElementById('posFile').value = '';
+      document.getElementById('bankLabel').textContent = 'Click to upload or drag & drop';
+      document.getElementById('posLabel').textContent = 'Click to upload or drag & drop';
+      document.getElementById('bankDrop').style.borderColor = '';
+      document.getElementById('posDrop').style.borderColor = '';
+      document.getElementById('clientConsent').checked = false;
+      prog.style.display = 'none';
+      btn.disabled = false;
+      loadHistory();
+    }, 2000);
+
+  } catch (e) {
+    showError('Network error. Check connection and try again.');
+    btn.disabled = false; prog.style.display = 'none';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('runError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function loadHistory() {
+  const listEl = document.getElementById('historyList');
+  try {
+    const res = await fetch(`${RAILWAY}/api/pro/history`, {
+      headers: { 'Authorization': `Bearer ${proToken}` }
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      listEl.innerHTML = '<div class="history-empty">Could not load history.</div>';
+      return;
+    }
+    const runs = data.runs || [];
+    if (runs.length === 0) {
+      listEl.innerHTML = '<div class="history-empty">No reports yet. Run your first client above.</div>';
+      return;
+    }
+    listEl.innerHTML = runs.map(r => `
+      <div class="history-row">
+        <div>
+          <div class="history-client">${r.clientLabel || r.projectName || 'Unnamed client'}</div>
+          <div class="history-meta">${r.period || ''} · ${new Date(r.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="status-badge ${r.expired ? 'status-failed' : 'status-complete'}">${r.expired ? 'Expired' : r.files + ' files'}</span>
+          ${!r.expired ? `<button class="btn-sm btn-sm-primary" onclick="downloadAll('${r.token}')">Download</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    listEl.innerHTML = '<div class="history-empty">Could not load history.</div>';
+  }
+}
+
+async function downloadAll(token) {
+  // Open each file
+  window.open(`${RAILWAY}/api/financial-triage/download/${token}`, '_blank');
+}
+
+loadAccountStatus();
+loadHistory();
+</script>
+</body>
+</html>
