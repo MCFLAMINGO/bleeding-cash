@@ -243,57 +243,23 @@
         </div>
 
         <!-- Step 2: Form selector + signature -->
-        <div class="form-step hidden" id="step2">
-          <div class="payment-box">
-            <h3 style="margin-bottom:4px">Almost there</h3>
-            <p style="margin-bottom:20px;color:#7A7974">Choose your forms and sign below, then generate.</p>
-            <!-- FORM SELECTOR -->
-            <div class="form-group" style="text-align:left;margin:24px 0 0">
-              <label style="font-weight:600;font-size:15px">Which lenders do you need forms for?</label>
-              <p class="hint" style="margin-top:4px">We generate each institution's official form pre-filled with your data.</p>
-              <div class="form-checkboxes" id="formSelector">
-                <label class="form-check locked"><input type="checkbox" value="sba413" checked disabled> SBA Form 413 <span class="badge-always">Always included</span></label>
-                <label class="form-check"><input type="checkbox" value="chase" checked> Chase Bank PFS</label>
-                <label class="form-check"><input type="checkbox" value="bofa" checked> Bank of America PFS</label>
-                <label class="form-check"><input type="checkbox" value="wf" checked> Wells Fargo PFS</label>
-                <label class="form-check"><input type="checkbox" value="truist" checked> Truist PFS</label>
-                <label class="form-check"><input type="checkbox" value="business_debt"> Business Debt Schedule</label>
-                <label class="form-check"><input type="checkbox" value="personal_debt"> Personal Debt Schedule</label>
-              </div>
-            </div>
-
-            <!-- SIGNATURE PAD -->
-            <div class="form-group" style="text-align:left;margin:24px 0 0">
-              <label style="font-weight:600;font-size:15px">Sign your documents <span style="color:#7A7974;font-weight:400;font-size:13px">(optional but recommended)</span></label>
-              <p class="hint" style="margin-top:4px">Your signature will be embedded on all generated forms. Draw below or type your name.</p>
-              <div id="sig-draw-area" class="sig-container">
-                <canvas id="signaturePad" width="480" height="130"></canvas>
-                <div class="sig-actions">
-                  <button type="button" id="sigClearBtn" class="btn-sig-clear">Clear</button>
-                  <button type="button" id="sigTypeToggle" class="btn-sig-type">Type instead</button>
-                </div>
-              </div>
-              <div id="sig-type-area" class="sig-type-area hidden">
-                <input type="text" id="typedSignature" placeholder="Type your full legal name" class="sig-type-input">
-                <button type="button" id="sigDrawToggle" class="btn-sig-type" style="margin-top:8px">Draw instead</button>
-              </div>
-              <p id="sig-status" class="hint" style="margin-top:6px;"></p>
-            </div>
-
-            <button type="button" class="btn btn-primary btn-large btn-full" id="uploadBtn" style="margin-top:24px">
-              Generate My Reports →
-            </button>
-          </div>
-        </div>
-
         <!-- Step 3: Success -->
         <div class="form-step hidden" id="step3">
           <div class="success-box">
             <div style="font-size:3rem;margin-bottom:16px">✅</div>
-            <h3>Your reports are being generated</h3>
-            <p>Your access token: <strong id="accessToken" style="color:#c0392b;font-family:monospace"></strong></p>
-            <p style="margin-top:12px">Your 3 PDFs are being generated. Check your email for the download link within 10 minutes.</p>
-            <a id="downloadLink" href="#" class="btn btn-primary btn-large" style="margin-top:16px;display:none">Download Reports →</a>
+            <h3 style="margin-bottom:8px">&#10003; Files received — reports on the way</h3>
+            <p style="color:var(--text-muted);margin-bottom:20px">Check your inbox. Two emails are coming:</p>
+            <div style="text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px">
+              <p style="margin:0 0 10px;font-size:14px;"><strong>Email 1 (now):</strong> Confirmation that we received your files.</p>
+              <p style="margin:0;font-size:14px;"><strong>Email 2 (in ~60 seconds):</strong> Your 3 PDF reports attached — Financial Analysis, Vendor Letter, Bank Loan Letter.</p>
+            </div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Your access token: <strong id="accessToken" style="color:#c0392b;font-family:monospace"></strong></p>
+            <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:left;border-left:3px solid #1B474D">
+              <p style="margin:0 0 4px;font-size:14px;font-weight:600">Need bank forms pre-filled?</p>
+              <p style="margin:0 0 10px;font-size:13px;color:var(--text-muted)">After you receive your reports, use your access token to generate pre-filled PFS forms for Chase, BofA, Wells Fargo, Truist, and SBA 413 — all signed with your e-signature.</p>
+              <a id="formsLink" href="/my-forms" class="btn btn-primary" style="font-size:13px;padding:10px 20px">Get Bank Forms →</a>
+            </div>
+            <a id="downloadLink" href="#" style="display:none"></a>
             <p style="margin-top:16px;font-size:13px;color:#888">Questions? Email <a href="mailto:support@bleeding.cash">support@bleeding.cash</a></p>
           </div>
         </div>

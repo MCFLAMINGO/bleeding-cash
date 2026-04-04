@@ -41,40 +41,62 @@ function setupDrop(dropId, inputId, nameId) {
 setupDrop('bankDrop', 'bankFile', 'bankName');
 setupDrop('posDrop', 'posFile', 'posName');
 
-// Store form data globally
-let formData = {};
-
-// Form submit — get free test token and go straight to upload
+// Form submit — get token then submit directly to triage API
 document.getElementById('triageForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
-  btn.textContent = 'Processing…';
+
+  const projectName = document.getElementById('projectName').value.trim();
+  const period = document.getElementById('period').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const bankFile = document.getElementById('bankFile').files[0];
+
+  if (!bankFile) {
+    alert('Please upload your bank statement before submitting.');
+    return;
+  }
+
+  btn.textContent = 'Sending your files…';
   btn.disabled = true;
 
-  formData = {
-    projectName: document.getElementById('projectName').value.trim(),
-    period: document.getElementById('period').value.trim(),
-    email: document.getElementById('email').value.trim(),
-  };
-
   try {
-    // Get free test token — skip payment
-    const res = await fetch(`${API}/api/test-token`);
+    // Get free test token
+    let uploadToken;
+    try {
+      const tr = await fetch(`${API}/api/test-token`);
+      const td = await tr.json();
+      uploadToken = td.uploadToken;
+    } catch(e) {
+      uploadToken = 'TEST-' + Math.random().toString(36).slice(2,10).toUpperCase();
+    }
+
+    const fd = new FormData();
+    fd.append('projectName', projectName);
+    fd.append('period', period);
+    fd.append('email', email);
+    fd.append('uploadToken', uploadToken);
+    fd.append('agreedToTos', 'true');
+    fd.append('mode', 'restaurant');
+    fd.append('bankFile', bankFile);
+
+    const posFile = document.getElementById('posFile')?.files[0];
+    if (posFile) fd.append('posFile', posFile);
+
+    const res = await fetch(`${API}/api/financial-triage`, { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Server error ' + res.status); }
     const data = await res.json();
-    
-    if (!data.uploadToken) throw new Error('Could not get upload token');
-    
-    // Store token and go straight to file upload step
-    window._uploadToken = data.uploadToken;
-    showStep('step2');
-    
+
+    // Show success
+    const token = data.accessToken || uploadToken;
+    document.getElementById('accessToken').textContent = token;
+    const fl = document.getElementById('formsLink');
+    if (fl) fl.href = `/my-forms?token=${token}`;
+    showStep('step3');
+
   } catch (err) {
-    console.error(err);
     btn.textContent = 'Get My Reports →';
     btn.disabled = false;
-    // Fallback — show file upload anyway with a generated token
-    window._uploadToken = 'TEST-' + Math.random().toString(36).slice(2,10).toUpperCase();
-    showStep('step2');
+    alert('Error: ' + err.message + '\n\nEmail support@bleeding.cash if this keeps happening.');
   }
 });
 
