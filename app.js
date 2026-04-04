@@ -42,9 +42,15 @@ setupDrop('bankDrop', 'bankFile', 'bankName');
 setupDrop('posDrop', 'posFile', 'posName');
 
 // Form submit — get token then submit directly to triage API
+let _submitting = false;
 document.getElementById('triageForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if (_submitting) return; // prevent double-submit
+  _submitting = true;
+
   const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Sending your files…';
+  btn.disabled = true;
 
   const projectName = document.getElementById('projectName').value.trim();
   const period = document.getElementById('period').value.trim();
@@ -55,9 +61,6 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
     alert('Please upload your bank statement before submitting.');
     return;
   }
-
-  btn.textContent = 'Sending your files…';
-  btn.disabled = true;
 
   try {
     // Get free test token
@@ -94,6 +97,7 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
     showStep('step3');
 
   } catch (err) {
+    _submitting = false;
     btn.textContent = 'Get My Reports →';
     btn.disabled = false;
     alert('Error: ' + err.message + '\n\nEmail support@bleeding.cash if this keeps happening.');
