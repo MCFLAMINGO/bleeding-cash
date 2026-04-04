@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Your Bank Forms — bleeding.cash</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩸</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .intake-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .intake-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    .intake-section { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; }
+    .intake-section h4 { margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--red); }
+    .intake-section p.section-desc { margin: 0 0 16px; font-size: 13px; color: var(--text-muted); }
+    .field-group { margin-bottom: 14px; }
+    .field-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field-group input, .field-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--surface); color: var(--text); box-sizing: border-box; }
+    .field-group input:focus, .field-group select:focus { outline: none; border-color: var(--red); }
+    .field-group .hint { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .ssn-notice { background: rgba(193,39,45,0.06); border: 1px solid rgba(193,39,45,0.2); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+    .ssn-notice strong { color: var(--red); }
+    .debt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .debt-row input { padding: 8px 10px; font-size: 13px; }
+    .debt-row-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .debt-row-header span { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .add-row-btn { font-size: 13px; color: var(--red); background: none; border: 1px dashed var(--border); border-radius: 6px; padding: 6px 14px; cursor: pointer; margin-top: 4px; }
+    .add-row-btn:hover { border-color: var(--red); }
+    .remove-row { background: none; border: none; color: #e74c3c; font-size: 18px; cursor: pointer; padding: 0 4px; }
+    .form-check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .step-header { text-align: center; padding: 32px 0 24px; }
+    .step-header .token-badge { display: inline-block; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 16px; font-family: monospace; font-size: 16px; font-weight: 700; color: var(--red); margin-top: 8px; letter-spacing: 2px; }
+    .privacy-bar { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; }
+    .privacy-bar svg { flex-shrink: 0; margin-top: 2px; }
+    .privacy-bar p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .progress-steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 32px; }
+    .progress-step { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+    .progress-step.active { color: var(--text); font-weight: 600; }
+    .progress-step.done { color: #27ae60; }
+    .progress-step .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .progress-step.active .dot { background: var(--red); }
+    .progress-step.done .dot { background: #27ae60; }
+    .progress-divider { width: 24px; height: 1px; background: var(--border); }
+    @media(max-width:600px) { .intake-grid, .intake-grid.three, .form-check-grid { grid-template-columns: 1fr; } .debt-row, .debt-row-header { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="logo"><span class="logo-text">bleeding.cash</span></a>
+    <div class="nav-links">
+      <a href="/">← Back to triage</a>
+    </div>
+  </nav>
+
+  <main style="max-width:820px;margin:0 auto;padding:24px 16px 80px;">
+
+    <!-- Token gate -->
+    <div id="gate" class="card" style="text-align:center;padding:48px 32px;max-width:480px;margin:60px auto;">
+      <h2 style="margin-bottom:8px">Enter your access token</h2>
+      <p style="color:var(--text-muted);margin-bottom:24px">From the email we sent after your financial triage.</p>
+      <input type="text" id="tokenInput" placeholder="TKN-XXXXXX" style="width:100%;padding:14px;font-size:18px;font-family:monospace;text-align:center;border:2px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);box-sizing:border-box;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">
+      <button class="btn btn-primary btn-large btn-full" id="gateBtn">Access My Forms</button>
+      <p id="gateError" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none"></p>
+    </div>
+
+    <!-- Main intake (hidden until token verified) -->
+    <div id="mainContent" style="display:none">
+
+      <div class="step-header">
+        <p style="color:var(--text-muted);font-size:14px;margin:0">Bank Form Auto-Population</p>
+        <h1 style="margin:8px 0 4px;font-size:28px">Fill once. Get every bank's form.</h1>
+        <div class="token-badge" id="tokenDisplay"></div>
+      </div>
+
+      <div class="progress-steps">
+        <div class="progress-step done"><div class="dot"></div> Financial Triage</div>
+        <div class="progress-divider"></div>
+        <div class="progress-step active"><div class="dot"></div> Personal Financial Data</div>
+        <div class="progress-divider"></div>
+        <div class="progress-step"><div class="dot"></div> Download Forms</div>
+      </div>
+
+      <div class="privacy-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <p><strong style="color:var(--text)">Your data is never stored.</strong> Everything you enter here lives only in your browser until you hit Generate. Our server receives it, fills your forms, emails you the ZIP, and wipes it immediately. We do not log, store, or retain any personal financial information. SSN fields are left blank for you to hand-write before submission.</p>
+      </div>
+
+      <form id="intakeForm">
+
+        <!-- PERSONAL INFO -->
+        <div class="intake-section">
+          <h4>Personal Information</h4>
+          <p class="section-desc">Used to populate name, address, and contact fields across all forms.</p>
+          <div class="intake-grid">
+            <div class="field-group"><label>Full Legal Name *</label><input type="text" name="full_name" placeholder="Erik Peter Osol" required></div>
+            <div class="field-group"><label>Co-Applicant / Spouse Name</label><input type="text" name="signer2_name" placeholder="Lea Blake Osol"></div>
+            <div class="field-group"><label>Home Address *</label><input type="text" name="home_address" placeholder="205 Odoms Mill Blvd" required></div>
+            <div class="field-group"><label>City, State, Zip *</label><input type="text" name="city_state_zip" placeholder="Ponte Vedra Beach, FL 32082" required></div>
+            <div class="field-group"><label>Home Phone</label><input type="tel" name="home_phone" placeholder="917-355-6404"></div>
+            <div class="field-group"><label>Business Phone</label><input type="tel" name="business_phone" placeholder="917-547-1483"></div>
+            <div class="field-group"><label>Business Name</label><input type="text" name="business_name" placeholder="McFlamingo One LLC"></div>
+            <div class="field-group"><label>Business Address</label><input type="text" name="business_address" placeholder="880 A1A North Suite 12"></div>
+            <div class="field-group"><label>Business Type</label>
+              <select name="business_type">
+                <option value="llc">LLC</option>
+                <option value="scorp">S-Corp</option>
+                <option value="corp">Corporation</option>
+                <option value="partnership">Partnership</option>
+                <option value="sole">Sole Proprietor</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Marital Status</label>
+              <select name="married">
+                <option value="true">Married</option>
+                <option value="false">Single</option>
+              </select>
+            </div>
+          </div>
+          <div class="ssn-notice">
+            <strong>SSN fields are intentionally left blank.</strong> We never collect Social Security Numbers. After downloading your forms, hand-write your SSN in the designated fields before submitting to any lender.
+          </div>
+        </div>
+
+        <!-- ASSETS -->
+        <div class="intake-section">
+          <h4>Assets</h4>
+          <p class="section-desc">Enter current values. Leave blank if zero.</p>
+          <div class="intake-grid">
+            <div class="field-group"><label>Cash on Hand &amp; in Banks</label><input type="number" name="cash_on_hand" placeholder="22000" min="0"></div>
+            <div class="field-group"><label>Savings Accounts</label><input type="number" name="savings_accounts" placeholder="0" min="0"></div>
+            <div class="field-group"><label>IRA / 401(k) / Retirement</label><input type="number" name="ira_retirement" placeholder="190000" min="0"></div>
+            <div class="field-group"><label>Stocks &amp; Bonds</label><input type="number" name="stocks_bonds" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Real Estate (market value)</label><input type="number" name="real_estate_value" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Vehicles / Automobiles</label><input type="number" name="automobiles" placeholder="12000" min="0"></div>
+            <div class="field-group"><label>Life Insurance (cash value)</label><input type="number" name="life_insurance_csv" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Other Assets</label><input type="number" name="other_assets" placeholder="0" min="0"></div>
+          </div>
+        </div>
+
+        <!-- LIABILITIES -->
+        <div class="intake-section">
+          <h4>Liabilities</h4>
+          <p class="section-desc">Current balances owed.</p>
+          <div class="intake-grid">
+            <div class="field-group"><label>Credit Cards / Accounts Payable</label><input type="number" name="accounts_payable" placeholder="130000" min="0"></div>
+            <div class="field-group"><label>Auto Loan Balance</label><input type="number" name="installment_auto" placeholder="15700" min="0"></div>
+            <div class="field-group"><label>Auto Monthly Payment</label><input type="number" name="installment_auto_payment" placeholder="635" min="0"></div>
+            <div class="field-group"><label>Other Installment Balance</label><input type="number" name="installment_other" placeholder="9000" min="0"></div>
+            <div class="field-group"><label>Other Monthly Payment</label><input type="number" name="installment_other_payment" placeholder="379" min="0"></div>
+            <div class="field-group"><label>Mortgages on Real Estate</label><input type="number" name="mortgages" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Unpaid Taxes</label><input type="number" name="unpaid_taxes" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Other Liabilities</label><input type="number" name="other_liabilities" placeholder="0" min="0"></div>
+          </div>
+        </div>
+
+        <!-- INCOME -->
+        <div class="intake-section">
+          <h4>Annual Income</h4>
+          <div class="intake-grid">
+            <div class="field-group"><label>Salary / Wages</label><input type="number" name="salary" placeholder="167000" min="0"></div>
+            <div class="field-group"><label>Rental / Real Estate Income</label><input type="number" name="real_estate_income" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Investment Income</label><input type="number" name="net_investment_income" placeholder="0" min="0"></div>
+            <div class="field-group"><label>Other Income</label><input type="number" name="other_income" placeholder="44000" min="0"></div>
+          </div>
+          <div class="field-group"><label>Other Income Description</label><input type="text" name="other_income_description" placeholder="Incentive Pay, Bonuses, etc."></div>
+        </div>
+
+        <!-- DEBT SCHEDULE -->
+        <div class="intake-section">
+          <h4>Notes Payable / Debt Schedule</h4>
+          <p class="section-desc">List individual loans, lines of credit, and obligations. This populates Schedule D on all bank forms.</p>
+          <div class="debt-row-header">
+            <span>Creditor / Lender</span>
+            <span>Current Balance</span>
+            <span>Monthly Payment</span>
+            <span>Collateral / Type</span>
+          </div>
+          <div id="debtRows">
+            <div class="debt-row">
+              <input type="text" placeholder="USAA Auto Loan">
+              <input type="number" placeholder="15700" min="0">
+              <input type="number" placeholder="635" min="0">
+              <input type="text" placeholder="BMW X5 2016">
+              <button type="button" class="remove-row" onclick="removeDebtRow(this)" style="display:none">&times;</button>
+            </div>
+          </div>
+          <button type="button" class="add-row-btn" onclick="addDebtRow()">+ Add another debt</button>
+        </div>
+
+        <!-- FORM SELECTION -->
+        <div class="intake-section">
+          <h4>Which forms do you need?</h4>
+          <p class="section-desc">Select all lenders you're applying to. SBA 413 is always included.</p>
+          <div class="form-check-grid">
+            <label class="form-check locked"><input type="checkbox" value="sba413" checked disabled> SBA Form 413 <span class="badge-always">Always</span></label>
+            <label class="form-check"><input type="checkbox" name="forms" value="chase" checked> Chase Bank PFS</label>
+            <label class="form-check"><input type="checkbox" name="forms" value="bofa" checked> Bank of America PFS</label>
+            <label class="form-check"><input type="checkbox" name="forms" value="wf" checked> Wells Fargo PFS</label>
+            <label class="form-check"><input type="checkbox" name="forms" value="truist" checked> Truist PFS</label>
+            <label class="form-check"><input type="checkbox" name="forms" value="business_debt"> Business Debt Schedule</label>
+            <label class="form-check"><input type="checkbox" name="forms" value="personal_debt"> Personal Debt Schedule</label>
+          </div>
+        </div>
+
+        <!-- SIGNATURE -->
+        <div class="intake-section">
+          <h4>Sign Your Documents <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:12px;color:var(--text-muted)">(optional)</span></h4>
+          <p class="section-desc">Your signature will be embedded on all generated forms.</p>
+          <div id="sig-draw-area" class="sig-container">
+            <canvas id="signaturePad" width="700" height="140"></canvas>
+            <div class="sig-actions">
+              <button type="button" id="sigClearBtn" class="btn-sig-clear">Clear</button>
+              <button type="button" id="sigTypeToggle" class="btn-sig-type">Type instead</button>
+            </div>
+          </div>
+          <div id="sig-type-area" class="sig-type-area hidden">
+            <input type="text" id="typedSignature" placeholder="Type your full legal name" class="sig-type-input">
+            <button type="button" id="sigDrawToggle" class="btn-sig-type" style="margin-top:8px">Draw instead</button>
+          </div>
+          <p id="sig-status" class="hint" style="margin-top:6px"></p>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-large btn-full" id="generateBtn">
+          Generate My Bank Forms →
+        </button>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:12px">Your data is used only to fill your forms and is wiped immediately after. We never store personal financial data.</p>
+
+      </form>
+
+      <!-- Success state -->
+      <div id="successState" style="display:none;text-align:center;padding:48px 24px;">
+        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <h2 style="margin-bottom:8px">Your forms are on their way</h2>
+        <p style="color:var(--text-muted);margin-bottom:24px">Check your email for the download link. All your personal data has been wiped from our servers.</p>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:400px;margin:0 auto;">
+          <p style="margin:0 0 4px;font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">Forms generated</p>
+          <p id="formsGenerated" style="margin:0;font-size:14px;font-weight:600"></p>
+        </div>
+        <a href="/" class="btn btn-primary" style="margin-top:24px;display:inline-block">Run another triage</a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-logo">
+      <a href="/" class="logo"><span class="logo-text" style="color:#fff">bleeding.cash</span></a>
+      <p style="color:rgba(255,255,255,0.4);margin-top:8px;font-size:13px">By MCFL Restaurant Holdings LLC.</p>
+    </div>
+    <div class="footer-links">
+      <a href="mailto:support@bleeding.cash">support@bleeding.cash</a>
+    </div>
+    <div class="footer-legal">
+      This service provides informational analysis only. Not financial, legal, or accounting advice. MCFL Restaurant Holdings LLC assumes no liability for decisions made based on reports generated by this service.
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
+  <script src="my-forms.js"></script>
+</body>
+</html>
