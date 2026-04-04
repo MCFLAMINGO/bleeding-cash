@@ -134,35 +134,55 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   spinner.style.display = 'block';
 
   try {
-    const res = await fetch(`${RAILWAY}/api/pro/signup`, {
+    // Step 1: Create the account record (no payment yet)
+    const signupRes = await fetch(`${RAILWAY}/api/pro/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firmName, email, password, respAccepted: true })
     });
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      errEl.textContent = data.error || 'Signup failed. Please try again.';
+    const signupData = await signupRes.json();
+    if (!signupRes.ok || signupData.error) {
+      errEl.textContent = signupData.error || 'Signup failed. Please try again.';
       errEl.style.display = 'block';
-      btn.disabled = false;
-      btnText.style.display = 'block';
-      spinner.style.display = 'none';
+      btn.disabled = false; btnText.style.display = 'block'; spinner.style.display = 'none';
       return;
     }
 
-    // Store session token
-    localStorage.setItem('pro_token', data.token);
-    localStorage.setItem('pro_email', email);
-    localStorage.setItem('pro_firm', firmName);
+    // Step 2: Create Basalt payment order
+    btnText.style.display = 'block';
+    btnText.textContent = 'Creating payment...';
+    spinner.style.display = 'none';
 
-    // Redirect to dashboard
-    window.location.href = '/pro/dashboard';
+    const orderRes = await fetch(`${RAILWAY}/api/pro/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, firmName, type: 'trial' })
+    });
+    const orderData = await orderRes.json();
+
+    if (!orderRes.ok || orderData.error) {
+      // Payment setup failed — still have account, just log them in for free trial window
+      // Store token and redirect to dashboard (they can pay later)
+      localStorage.setItem('pro_token', signupData.token);
+      localStorage.setItem('pro_email', email);
+      localStorage.setItem('pro_firm', firmName);
+      window.location.href = '/pro/dashboard';
+      return;
+    }
+
+    // Step 3: Store pending info and redirect to Basalt payment page
+    localStorage.setItem('pro_pending_receipt', orderData.receiptId);
+    localStorage.setItem('pro_pending_email', email);
+    localStorage.setItem('pro_pending_firm', firmName);
+    localStorage.setItem('pro_signup_token', signupData.token);
+
+    // Open payment in same tab — Basalt will redirect back
+    window.location.href = orderData.paymentUrl + '?returnUrl=' + encodeURIComponent(window.location.origin + '/pro/payment-confirm');
+
   } catch (err) {
     errEl.textContent = 'Network error. Check your connection and try again.';
     errEl.style.display = 'block';
-    btn.disabled = false;
-    btnText.style.display = 'block';
-    spinner.style.display = 'none';
+    btn.disabled = false; btnText.style.display = 'block'; spinner.style.display = 'none';
   }
 });
 </script>
