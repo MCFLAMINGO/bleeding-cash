@@ -88,6 +88,24 @@
 
     <div class="result-box" id="resultBox"></div>
 
+    <!-- Re-upload section — shown when payment confirmed but files needed -->
+    <div id="reuploadSection" style="display:none;margin-top:24px;border-top:1px solid var(--border);padding-top:24px;">
+      <p style="font-size:0.9rem;font-weight:600;margin-bottom:4px;">Re-upload your files to generate your reports</p>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;">Your payment is confirmed. We just need your files again to generate your reports.</p>
+      
+      <div class="form-group">
+        <label>Bank Statement (XLS / XLSX / CSV) *</label>
+        <input type="file" id="reBankFile" accept=".xls,.xlsx,.csv" style="padding:8px;">
+      </div>
+      <div class="form-group">
+        <label>POS Export — Toast / Square / Clover (optional)</label>
+        <input type="file" id="rePosFile" accept=".xls,.xlsx,.csv" style="padding:8px;">
+      </div>
+      <button class="btn-primary" id="resubmitBtn" onclick="resubmitFiles()">
+        Generate my reports now
+      </button>
+    </div>
+
     <div class="divider">or</div>
 
     <p style="font-size:0.85rem;color:var(--muted);text-align:center;line-height:1.6;">
@@ -114,6 +132,12 @@ function showResult(msg, isError) {
   box.style.display = 'block';
 }
 
+// Store confirmed receipt/email for resubmit
+let confirmedReceipt = null;
+let confirmedEmail   = null;
+let confirmedProject = null;
+let confirmedToken   = null;
+
 async function recoverByReceipt() {
   const receiptId = document.getElementById('receiptInput').value.trim();
   const email     = document.getElementById('receiptEmail').value.trim();
@@ -136,15 +160,64 @@ async function recoverByReceipt() {
     const data = await res.json();
 
     if (data.ok) {
-      showResult(`✅ ${data.message}`, false);
-      btn.textContent = 'Reports sent!';
+      if (data.reportsDelivered) {
+        // Reports found and re-sent
+        showResult('✅ Reports re-sent to ' + email + '. Check your inbox (and spam folder).', false);
+        btn.textContent = 'Reports sent!';
+      } else if (data.needsFiles) {
+        // Payment confirmed but files needed
+        confirmedReceipt = receiptId;
+        confirmedEmail   = email;
+        confirmedProject = project || 'Your Restaurant';
+        confirmedToken   = data.uploadToken;
+        showResult('✅ Payment confirmed. Please re-upload your files below to generate your reports.', false);
+        document.getElementById('reuploadSection').style.display = 'block';
+        btn.textContent = 'Payment confirmed ✓';
+      } else {
+        showResult('✅ ' + data.message, false);
+        btn.textContent = 'Done';
+      }
     } else {
-      showResult(`❌ ${data.error || 'Could not process. Email support@bleeding.cash'}`, true);
+      showResult('❌ ' + (data.error || 'Could not process. Email support@bleeding.cash'), true);
       btn.disabled = false;
       btn.textContent = 'Try again';
     }
   } catch {
     showResult('Network error. Please try again or email support@bleeding.cash', true);
+    btn.disabled = false;
+    btn.textContent = 'Try again';
+  }
+}
+
+async function resubmitFiles() {
+  const bankFile = document.getElementById('reBankFile').files[0];
+  const posFile  = document.getElementById('rePosFile').files[0];
+  const btn      = document.getElementById('resubmitBtn');
+
+  if (!bankFile) return showResult('Please upload your bank statement first.', true);
+  if (!confirmedToken) return showResult('Session expired. Please click Recover my reports again.', true);
+
+  btn.disabled = true;
+  btn.textContent = 'Generating your reports…';
+
+  try {
+    const fd = new FormData();
+    fd.append('projectName', confirmedProject);
+    fd.append('email', confirmedEmail);
+    fd.append('uploadToken', confirmedToken);
+    fd.append('agreedToTos', 'true');
+    fd.append('mode', 'restaurant');
+    fd.append('bankFile', bankFile);
+    if (posFile) fd.append('posFile', posFile);
+
+    const res = await fetch(`${API}/api/financial-triage`, { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Server error'); }
+
+    showResult('✅ Reports generated and emailed to ' + confirmedEmail + '. Check your inbox!', false);
+    btn.textContent = '✅ Done!';
+    document.getElementById('reuploadSection').style.display = 'none';
+  } catch (err) {
+    showResult('❌ ' + err.message, true);
     btn.disabled = false;
     btn.textContent = 'Try again';
   }
