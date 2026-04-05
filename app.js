@@ -173,13 +173,19 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
     btn.textContent = 'Waiting for payment…';
     btn.disabled = true;
 
-    // Show "I've completed payment" button
+    // Show "I've completed payment" button + recovery link
     const payDoneBtn = document.createElement('button');
     payDoneBtn.className = btn.className;
     payDoneBtn.textContent = '✅ I’ve completed payment — get my reports';
     payDoneBtn.style.marginTop = '12px';
     payDoneBtn.style.background = '#01696F';
     btn.parentNode.insertBefore(payDoneBtn, btn.nextSibling);
+
+    // Recovery notice
+    const recoveryNote = document.createElement('p');
+    recoveryNote.style.cssText = 'font-size:0.78rem;color:#7A7974;margin-top:16px;text-align:center;line-height:1.6;';
+    recoveryNote.innerHTML = `Receipt ID: <strong style="font-family:monospace">${orderData.receiptId}</strong><br>A confirmation email with your receipt was sent to you.<br>If anything goes wrong, visit <a href="/recover" style="color:#c0392b;font-weight:600;">bleeding.cash/recover</a>.`;
+    payDoneBtn.parentNode.insertBefore(recoveryNote, payDoneBtn.nextSibling);
 
     const receiptId = orderData.receiptId;
 
