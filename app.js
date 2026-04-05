@@ -166,9 +166,83 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
       throw new Error(orderData.error || 'Could not create payment order');
     }
 
-    // Redirect to Basalt payment page
-    const returnUrl = window.location.origin + window.location.pathname + '?receipt=' + orderData.receiptId;
-    window.location.href = orderData.paymentUrl + '&returnUrl=' + encodeURIComponent(returnUrl);
+    // Open Basalt payment page in new tab, show "I've paid" button
+    window.open(orderData.paymentUrl, '_blank');
+
+    // Show waiting-for-payment UI
+    btn.textContent = 'Waiting for payment…';
+    btn.disabled = true;
+
+    // Show "I've completed payment" button
+    const payDoneBtn = document.createElement('button');
+    payDoneBtn.className = btn.className;
+    payDoneBtn.textContent = '✅ I’ve completed payment — get my reports';
+    payDoneBtn.style.marginTop = '12px';
+    payDoneBtn.style.background = '#01696F';
+    btn.parentNode.insertBefore(payDoneBtn, btn.nextSibling);
+
+    const receiptId = orderData.receiptId;
+
+    payDoneBtn.addEventListener('click', async () => {
+      payDoneBtn.textContent = 'Confirming payment…';
+      payDoneBtn.disabled = true;
+
+      // Poll for confirmation (max 60s)
+      let uploadToken = null;
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        try {
+          const r = await fetch(`${API}/api/check-payment?receiptId=${encodeURIComponent(receiptId)}`);
+          const d = await r.json();
+          if (d.paid) { uploadToken = d.uploadToken; break; }
+        } catch (_) {}
+      }
+
+      if (!uploadToken) {
+        payDoneBtn.textContent = 'Payment not confirmed yet — try again';
+        payDoneBtn.disabled = false;
+        return;
+      }
+
+      payDoneBtn.textContent = 'Analyzing your files…';
+
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('bc_pending') || 'null');
+        if (!saved) throw new Error('Session expired. Please refresh and resubmit.');
+
+        const fd = new FormData();
+        fd.append('projectName', saved.projectName);
+        fd.append('period', saved.period);
+        fd.append('email', saved.email);
+        fd.append('uploadToken', uploadToken);
+        fd.append('agreedToTos', 'true');
+        fd.append('mode', 'restaurant');
+
+        if (saved.bankFileData) {
+          const blob = await fetch(saved.bankFileData).then(r => r.blob());
+          fd.append('bankFile', blob, saved.bankFileName);
+        }
+        if (saved.posFileData) {
+          const blob = await fetch(saved.posFileData).then(r => r.blob());
+          fd.append('posFile', blob, saved.posFileName);
+        }
+
+        const res = await fetch(`${API}/api/financial-triage`, { method: 'POST', body: fd });
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Server error'); }
+        const data = await res.json();
+
+        sessionStorage.removeItem('bc_pending');
+        const token = data.accessToken || uploadToken;
+        document.getElementById('accessToken').textContent = token;
+        const fl = document.getElementById('formsLink');
+        if (fl) fl.href = `/my-forms?token=${token}`;
+        showStep('step3');
+      } catch (err) {
+        payDoneBtn.textContent = 'Error — try again';
+        payDoneBtn.disabled = false;
+        alert('Error: ' + err.message + '\n\nEmail support@bleeding.cash with your receipt: ' + receiptId);
+      }
+    });
 
   } catch (err) {
     _submitting = false;
