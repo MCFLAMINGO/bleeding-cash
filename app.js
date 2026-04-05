@@ -41,15 +41,84 @@ function setupDrop(dropId, inputId, nameId) {
 setupDrop('bankDrop', 'bankFile', 'bankName');
 setupDrop('posDrop', 'posFile', 'posName');
 
-// Form submit — get token then submit directly to triage API
+// ── Payment return handler ─────────────────────────────────────────────────────────
+// When Basalt redirects back after payment, URL will have ?receipt=R-XXXXXX
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const receiptId = params.get('receipt');
+  if (!receiptId) return;
+
+  // Restore saved form data
+  const saved = JSON.parse(sessionStorage.getItem('bc_pending') || 'null');
+  if (!saved) return;
+
+  // Show payment confirming state
+  showStep('step2');
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.textContent = 'Confirming payment…'; btn.disabled = true; }
+
+  // Poll for payment confirmation (max 60s)
+  let uploadToken = null;
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      const r = await fetch(`${API}/api/check-payment?receiptId=${encodeURIComponent(receiptId)}`);
+      const d = await r.json();
+      if (d.paid) { uploadToken = d.uploadToken; break; }
+    } catch (_) {}
+  }
+
+  if (!uploadToken) {
+    alert('Payment confirmation timed out. Email support@bleeding.cash with your receipt: ' + receiptId);
+    if (btn) { btn.textContent = 'Get My Reports →'; btn.disabled = false; }
+    return;
+  }
+
+  // Run triage with confirmed token
+  try {
+    if (btn) btn.textContent = 'Analyzing your files…';
+    const fd = new FormData();
+    fd.append('projectName', saved.projectName);
+    fd.append('period', saved.period);
+    fd.append('email', saved.email);
+    fd.append('uploadToken', uploadToken);
+    fd.append('agreedToTos', 'true');
+    fd.append('mode', 'restaurant');
+
+    // Re-attach files if still available
+    if (saved.bankFileData) {
+      const blob = await fetch(saved.bankFileData).then(r => r.blob());
+      fd.append('bankFile', blob, saved.bankFileName);
+    }
+    if (saved.posFileData) {
+      const blob = await fetch(saved.posFileData).then(r => r.blob());
+      fd.append('posFile', blob, saved.posFileName);
+    }
+
+    const res = await fetch(`${API}/api/financial-triage`, { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Server error'); }
+    const data = await res.json();
+
+    sessionStorage.removeItem('bc_pending');
+    const token = data.accessToken || uploadToken;
+    document.getElementById('accessToken').textContent = token;
+    const fl = document.getElementById('formsLink');
+    if (fl) fl.href = `/my-forms?token=${token}`;
+    showStep('step3');
+  } catch (err) {
+    alert('Analysis error: ' + err.message + '\n\nYour payment was received. Email support@bleeding.cash and we will process manually.');
+  }
+})();
+
+// ── Form submit ─────────────────────────────────────────────────────────
 let _submitting = false;
 document.getElementById('triageForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (_submitting) return; // prevent double-submit
+  if (_submitting) return;
   _submitting = true;
 
   const btn = document.getElementById('submitBtn');
-  btn.textContent = 'Sending your files…';
+  btn.textContent = 'Creating order…';
   btn.disabled = true;
 
   const projectName = document.getElementById('projectName').value.trim();
@@ -59,42 +128,47 @@ document.getElementById('triageForm').addEventListener('submit', async e => {
 
   if (!bankFile) {
     alert('Please upload your bank statement before submitting.');
+    _submitting = false;
+    btn.textContent = 'Get My Reports →';
+    btn.disabled = false;
     return;
   }
 
   try {
-    // Get free test token
-    let uploadToken;
-    try {
-      const tr = await fetch(`${API}/api/test-token`);
-      const td = await tr.json();
-      uploadToken = td.uploadToken;
-    } catch(e) {
-      uploadToken = 'TEST-' + Math.random().toString(36).slice(2,10).toUpperCase();
+    // Save files as data URLs so they survive the payment redirect
+    const toDataURL = f => new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(f);
+    });
+
+    const bankFileData = await toDataURL(bankFile);
+    const posFile = document.getElementById('posFile')?.files[0];
+    const posFileData = posFile ? await toDataURL(posFile) : null;
+
+    // Save form data to sessionStorage before redirect
+    sessionStorage.setItem('bc_pending', JSON.stringify({
+      projectName, period, email,
+      bankFileData, bankFileName: bankFile.name,
+      posFileData, posFileName: posFile?.name || null,
+    }));
+
+    // Create Basalt payment order
+    const orderRes = await fetch(`${API}/api/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectName, email, period })
+    });
+    const orderData = await orderRes.json();
+
+    if (!orderData.paymentUrl) {
+      throw new Error(orderData.error || 'Could not create payment order');
     }
 
-    const fd = new FormData();
-    fd.append('projectName', projectName);
-    fd.append('period', period);
-    fd.append('email', email);
-    fd.append('uploadToken', uploadToken);
-    fd.append('agreedToTos', 'true');
-    fd.append('mode', 'restaurant');
-    fd.append('bankFile', bankFile);
-
-    const posFile = document.getElementById('posFile')?.files[0];
-    if (posFile) fd.append('posFile', posFile);
-
-    const res = await fetch(`${API}/api/financial-triage`, { method: 'POST', body: fd });
-    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Server error ' + res.status); }
-    const data = await res.json();
-
-    // Show success
-    const token = data.accessToken || uploadToken;
-    document.getElementById('accessToken').textContent = token;
-    const fl = document.getElementById('formsLink');
-    if (fl) fl.href = `/my-forms?token=${token}`;
-    showStep('step3');
+    // Redirect to Basalt payment page
+    const returnUrl = window.location.origin + window.location.pathname + '?receipt=' + orderData.receiptId;
+    window.location.href = orderData.paymentUrl + '&returnUrl=' + encodeURIComponent(returnUrl);
 
   } catch (err) {
     _submitting = false;
