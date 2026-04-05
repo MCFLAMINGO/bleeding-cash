@@ -5,6 +5,7 @@
     { "source": "/pro/dashboard",       "destination": "/pro-dashboard.html" },
     { "source": "/pro/payment-confirm", "destination": "/pro-payment-confirm.html" },
     { "source": "/pro",                 "destination": "/pro.html" },
+    { "source": "/recover",             "destination": "/recover.html" },
     { "source": "/(.*)",                "destination": "/index.html" }
   ]
 }
